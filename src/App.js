@@ -155,12 +155,10 @@ function ValidMoves(state) {
 }
 
 
-
-
 const Peg = (props) => {
   console.log("rendering peg: ")
   console.log(props)
-  const display_char = (props.state[props.index] ? "X" : "0");
+  const filled = (props.state[props.index]);
   const source_of_move = props.moves.filter((x) => (x[0] == props.index));
   const target_of_move = props.moves.filter((x) => (x[1] == props.index));
   const jumped_by_move = props.moves.filter((x) => (x[2] == props.index));
@@ -170,13 +168,15 @@ const Peg = (props) => {
       props.controller([props.selections[0],props.index,-1])));
   const confirmationCallback = ((e) => (
       props.controller([props.selections[0],props.selections[1],props.index])));
-
+  const display_char = (filled ? "●" : "○");
   if (props.selections[0] < 0) {
     // no source peg selected
     // are we a potential one?
     if (source_of_move.length) {
           console.log("a move can be started from " + props.index)
-          return (<button onClick={selectionCallback}>{display_char}</button>)
+          return (<button onClick={selectionCallback}>
+            {display_char}
+            </button>)
     }
   } else if (props.selections[1] < 0) {
     // no target selected, are we one?
@@ -199,7 +199,7 @@ const Peg = (props) => {
   }
 
 
-  return (<button disabled="true">{display_char}</button>)
+  return (<span>{display_char}</span>)
 }
 
 const BoardCell = (props) => {
@@ -261,13 +261,19 @@ function ApplyMove(boardState,interfaceState) {
   )
 }
 
+
 const PrettyBoard = (props) => {
   const scaled_size = (BOARD_SIZE+2)*props.scale;
   const scaled_radius = props.scale/4;
   const stroke_width = props.scale/10;
+  const on_click = (e) => {
+    console.log("Clicked Event! "+e)
+  } ;
+
 
   return (
-    <svg width={scaled_size} height={scaled_size}>
+    <svg width={scaled_size} height={scaled_size}
+    >
     {
       MakeRange(NUM_PEGS).map(
         (p) => (props.state[p] ?
@@ -293,7 +299,20 @@ const GameBoard = (props) => {
   const [boardState, setBoardState] = useState(INITIAL_STATE);
   const [interfaceState, setInterfaceState] = useState([-1,-1,-1]);
 
+  const clearSelection = () => {
+    setInterfaceState([-1,-1,-1])
+  };
+
+  const resetGame = () => {
+    if (window.confirm("Are you sure you want to reset all progress?")) {
+      setBoardState(INITIAL_STATE);
+      setInterfaceState([-1,-1,-1]);
+    }
+  };
+
   const moveList = ValidMoves(boardState);
+  const peices_left = boardState.filter((x) => (x)).length;
+
   console.log("moveList: "+moveList)
 
   useEffect(() => {
@@ -306,15 +325,9 @@ const GameBoard = (props) => {
   }, [interfaceState])
 
 
+
   return (<div>
 
-    <table>
-      <tbody>
-        <tr>
-        <td>
-      <PrettyBoard state={boardState} scale="40"/>
-        </td>
-          <td>
           {
             ((interfaceState[0] < 0) ?
              (<p>Select piece to move</p>) :
@@ -330,11 +343,9 @@ const GameBoard = (props) => {
         moves={moveList}
         selections={interfaceState}
         controller={setInterfaceState}/>
-        </td>
-
-      </tr>
-      </tbody>
-      </table>
+    <p><button onClick={resetGame}>Reset</button>
+    <button onClick={clearSelection} disabled={interfaceState[0]<0}>Clear Selection</button>
+    </p>
     </div>
   );
 }
@@ -349,7 +360,6 @@ function App() {
           This is an implentation of the peg-game described in
           Session 17 of Lawvere and Schanuel:
         </p>
-
       </header>
     </div>
   );
