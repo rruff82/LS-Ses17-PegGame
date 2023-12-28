@@ -168,7 +168,7 @@ const Peg = (props) => {
       props.controller([props.selections[0],props.index,-1])));
   const confirmationCallback = ((e) => (
       props.controller([props.selections[0],props.selections[1],props.index])));
-  const display_char = (filled ? "●" : "○");
+  const display_char = (filled ? "⬤" : "○");
   if (props.selections[0] < 0) {
     // no source peg selected
     // are we a potential one?
@@ -204,7 +204,7 @@ const Peg = (props) => {
 
 const BoardCell = (props) => {
   //console.log(props)
-      return (<td>
+      return (<td width="25px">
         {
           PegListByCoords([props.col,props.row]).map( (x) =>
         (<Peg key={"peg"+x}
@@ -221,7 +221,7 @@ const BoardCell = (props) => {
 
 const BoardRow = (props) => {
 
-  return (<tr>
+  return (<tr height="25px">
     {
       MakeRange(BOARD_SIZE).map( (col) => (
           <BoardCell key={"r"+props.row+"c"+col}
@@ -236,7 +236,7 @@ const BoardRow = (props) => {
 
 const GameState = (props) => {
   return (
-    <table>
+    <table width={BOARD_SIZE*30}>
       <tbody>
       {
         MakeRange(BOARD_SIZE).map( (r) => (
@@ -313,6 +313,8 @@ const GameBoard = (props) => {
   const moveList = ValidMoves(boardState);
   const peices_left = boardState.filter((x) => (x)).length;
 
+  const win_condition = (peices_left == 1) && boardState[CENTER_PEG];
+
   console.log("moveList: "+moveList)
 
   useEffect(() => {
@@ -346,6 +348,17 @@ const GameBoard = (props) => {
     <p><button onClick={resetGame}>Reset</button>
     <button onClick={clearSelection} disabled={interfaceState[0]<0}>Clear Selection</button>
     </p>
+    <p>You have {peices_left} peices remaining.</p>
+    {
+    moveList.length > 0 ? (<p>You have {moveList.length} moves to choose from</p>) :
+    (
+      <p>No moves left!
+        { (peices_left >= 1) ? "  You lose!  " : 
+          (win_condition ? "  You win!  " : "  Board cleared, but last peg not centered.  ")}
+         </p>
+    )
+}
+
     </div>
   );
 }
